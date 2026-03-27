@@ -1,0 +1,145 @@
+# config.yaml
+# -----------
+# Configuration for image-change-detector.
+# All values are optional — defaults are used if not provided.
+
+# -----------------------------------------------------------------------
+# Pixel / SSIM change detector settings
+# -----------------------------------------------------------------------
+detector:
+  # Pixel intensity difference to consider a change (0-255)
+  threshold: 60
+
+  # Minimum contour area (pixels²) to report as a changed region
+  # Raised high to filter out noise and small lighting artifacts
+  min_contour_area: 8000
+
+  # Gaussian blur kernel size (must be odd) for noise reduction
+  blur_kernel: 11
+
+# -----------------------------------------------------------------------
+# Object detection settings (YOLOv8)
+# -----------------------------------------------------------------------
+object_detector:
+  # YOLOv8 model variant: yolov8n | yolov8s | yolov8m | yolov8l | yolov8x
+  # Smaller = faster, larger = more accurate
+  model: yolov8n
+
+  # Minimum confidence score to accept a detection (0.0 - 1.0)
+  confidence: 0.4
+
+  # IoU threshold for matching objects between the two images
+  iou_threshold: 0.3
+
+  # Inference device: cpu | cuda | mps
+  device: cpu
+
+  # Enable SAHI tiled inference for better small-object recall
+  use_sahi: false
+
+  # SAHI tile size (pixels)
+  sahi_slice_height: 640
+  sahi_slice_width: 640
+
+  # SAHI tile overlap ratio (0.0 - 0.9)
+  sahi_overlap_ratio: 0.2
+
+  # Use class-agnostic region output in --mode object (recommended when
+  # class labels are noisy across viewpoints)
+  class_agnostic_output: true
+
+# -----------------------------------------------------------------------
+# Robust mode: Image Alignment (for different cameras/angles/drones)
+# -----------------------------------------------------------------------
+alignment:
+  # Feature detector: 'sift' (scale-invariant, better) or 'orb' (faster)
+  feature_type: sift
+
+  # Maximum number of keypoints to detect
+  max_features: 5000
+
+  # Lowe's ratio test threshold (lower = stricter matching, 0.6-0.8)
+  good_match_ratio: 0.75
+
+  # RANSAC reprojection threshold in pixels
+  ransac_thresh: 5.0
+
+  # Minimum feature matches required to compute homography
+  min_matches: 10
+
+# -----------------------------------------------------------------------
+# Robust mode: Photometric Normalization
+# -----------------------------------------------------------------------
+normalization:
+  # Method: 'histogram' | 'clahe' | 'combined' (histogram + clahe)
+  method: combined
+
+  # CLAHE clip limit (higher = more contrast enhancement)
+  clahe_clip: 2.0
+
+  # CLAHE tile grid size
+  clahe_grid: 8
+
+# -----------------------------------------------------------------------
+# Robust mode: Multi-Scale Detection
+# -----------------------------------------------------------------------
+multiscale:
+  # Number of Gaussian pyramid levels (3-5 recommended)
+  num_levels: 4
+
+  # Per-level pixel diff threshold
+  threshold: 40
+
+  # Min pyramid levels a change must appear in to be kept (reduces noise)
+  consistency: 3
+
+  # Minimum contour area at base resolution (pixels²)
+  min_contour_area: 2000
+
+  # Gaussian blur kernel size per level
+  blur_kernel: 7
+
+# -----------------------------------------------------------------------
+# AI Reasoning (VLM-based semantic change detection)
+# -----------------------------------------------------------------------
+reasoning:
+  # Provider: 'huggingface' (free via HF), 'gemini' (Google), 'openai' (GPT-4o),
+  #           'openrouter' (OpenAI-compatible, many free vision models)
+  provider: huggingface
+
+  # Model name (leave empty for provider default)
+  # HuggingFace: Qwen/Qwen2.5-VL-7B-Instruct, meta-llama/Llama-3.2-11B-Vision-Instruct
+  # Gemini:      gemini-2.5-flash, gemini-3-flash-preview
+  # OpenAI:      gpt-4.1-mini, gpt-4o, gpt-4.1
+  # OpenRouter:  google/gemini-2.5-flash-preview:free, openrouter/healer-alpha
+  model: ""
+
+  # Environment variable name containing the API key (leave empty for provider default)
+  # HuggingFace → HF_TOKEN, Gemini → GEMINI_API_KEY,
+  # OpenAI → OPENAI_API_KEY, OpenRouter → OPENROUTER_API_KEY
+  api_key_env: ""
+
+  # HuggingFace inference backend: 'auto', 'novita', 'together', 'sambanova', etc.
+  # Only used when provider is 'huggingface'. 'auto' picks the fastest free backend.
+  hf_provider: auto
+
+  # Fallback providers to try if primary fails (comma-separated).
+  # Example: "gemini,openrouter" — tries Gemini first, then OpenRouter.
+  # Each provider reads its API key from its own env var automatically.
+  fallback_providers: ""
+
+  # Temperature (0 = deterministic, higher = more creative)
+  temperature: 0.2
+
+  # Maximum response tokens
+  max_tokens: 4096
+
+# -----------------------------------------------------------------------
+# Output settings
+# -----------------------------------------------------------------------
+output:
+  # Default output directory for saved images/reports
+  directory: outputs/
+
+  # DPI for saved plot images
+  dpi: 150

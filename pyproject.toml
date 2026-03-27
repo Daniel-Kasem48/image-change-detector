@@ -1,0 +1,114 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel>=0.41.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-change-detector"
+version = "1.0.0"
+description = "Production-grade image change detection using computer vision and deep learning"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Roamify Technologies Inc"},
+]
+keywords = [
+    "image-comparison",
+    "change-detection",
+    "computer-vision",
+    "object-detection",
+    "yolo",
+    "opencv",
+    "drone-imagery",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "opencv-python>=4.8.0",
+    "numpy>=1.24.0",
+    "Pillow>=10.0.0",
+    "scikit-image>=0.21.0",
+    "scipy>=1.11.0",
+    "matplotlib>=3.7.0",
+    "PyYAML>=6.0",
+    "click>=8.1.0",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "ultralytics>=8.0.0",
+]
+cpu = [
+    "ultralytics>=8.0.0",
+]
+reasoning = [
+    "google-genai>=1.0.0",
+]
+reasoning-openai = [
+    "openai>=1.0.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "ruff>=0.4.0",
+    "mypy>=1.8.0",
+]
+all = [
+    "image-change-detector[cpu,dev]",
+]
+
+[project.scripts]
+image-change-detector = "src.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/roamify-technologies/image-change-detector"
+Documentation = "https://github.com/roamify-technologies/image-change-detector#readme"
+Repository = "https://github.com/roamify-technologies/image-change-detector"
+Issues = "https://github.com/roamify-technologies/image-change-detector/issues"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks integration tests requiring sample images",
+    "gpu: marks tests requiring GPU/YOLO",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM", "TCH", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
