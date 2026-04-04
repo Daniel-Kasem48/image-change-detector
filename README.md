@@ -186,6 +186,60 @@ If you want simple time-ratio pairing instead of visual alignment:
 python main.py compare-videos /path/to/video_a.mp4 /path/to/video_b.mp4 --alignment ratio
 ```
 
+### Desktop app for video comparison
+
+If you prefer a GUI instead of CLI, you have 2 options.
+
+#### Option A (non-technical, recommended)
+
+Run one command:
+
+```bash
+./install_desktop_app.sh
+```
+
+This will:
+- install everything automatically
+- create an app-menu launcher: `Video Change Detector`
+- create a desktop shortcut (if `~/Desktop` exists)
+
+Then open the app by clicking the launcher/desktop icon.
+
+#### Option B (manual)
+
+```bash
+./venv/bin/pip install -r requirements-desktop.txt
+./venv/bin/python video_compare_desktop.py
+```
+
+The desktop app lets you:
+- pick Video A / Video B
+- tune comparison options (`mode`, `alignment`, thresholds, stabilization)
+- run comparison and view JSON summary in-app
+- open output folder quickly
+
+This GUI uses `PySide6` (installed from pip), so you do not need system Tk/Tkinter setup.
+
+#### Windows `.exe` (no terminal for end-users)
+
+This repo includes GitHub Actions packaging for a native Windows executable:
+- workflow file: `.github/workflows/build-windows-exe.yml`
+- output artifact: `VideoChangeDetector.exe`
+
+How to generate and download it:
+1. Push your latest changes to GitHub.
+2. Open the repo on GitHub.
+3. Go to **Actions** -> **Build Windows EXE**.
+4. Click **Run workflow**.
+5. Open the finished run and download artifact **VideoChangeDetector-windows-exe**.
+6. Share `VideoChangeDetector.exe` with non-technical users.
+
+Optional local Windows build (PowerShell):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_exe.ps1
+```
+
 ### Train a deep baseline (Tiny UNet)
 
 ```bash
