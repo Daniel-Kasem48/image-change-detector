@@ -29,12 +29,13 @@ jobs:
           pip install pyinstaller
 
       - name: Build EXE with PyInstaller
+        shell: pwsh
         run: |
-          pyinstaller --noconfirm --clean --windowed --onefile ^
-            --name VideoChangeDetector ^
-            --collect-all PySide6 ^
-            --collect-all cv2 ^
-            --add-data "config.yaml;." ^
+          pyinstaller --noconfirm --clean --windowed --onefile `
+            --name VideoChangeDetector `
+            --collect-all PySide6 `
+            --collect-all cv2 `
+            --add-data "config.yaml;." `
             video_compare_desktop.py
 
       - name: Upload artifact
