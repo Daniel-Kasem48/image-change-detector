@@ -11,6 +11,7 @@ frame results to an output folder.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,18 @@ from .logging_config import get_logger
 from .utils import save_result
 
 logger = get_logger(__name__)
+
+
+def _format_timestamp_hms_ms(seconds: float) -> str:
+    """Format seconds into HH-mm-ss-ms."""
+    total_ms = max(0, int(round(seconds * 1000)))
+    td = timedelta(milliseconds=total_ms)
+    total_seconds = int(td.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    secs = total_seconds % 60
+    millis = total_ms % 1000
+    return f"{hours:02d}-{minutes:02d}-{secs:02d}-{millis:03d}"
 
 
 @dataclass(frozen=True)
@@ -400,7 +413,8 @@ def compare_videos(
         raise ValueError("illumination_mode must be 'none', 'clahe', or 'match'")
 
     out_root = Path(output_dir)
-    changed_dir = out_root / "changed_frames"
+    processing_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")[:-3]
+    changed_dir = out_root / f"changed_frames_{processing_stamp}"
     changed_dir.mkdir(parents=True, exist_ok=True)
 
     samples_a = _sample_video_frames(video_a, sample_fps)
@@ -556,10 +570,10 @@ def compare_videos(
 
     changed_rows: list[dict[str, Any]] = []
     for row in kept:
+        ts_a = _format_timestamp_hms_ms(float(row["timestamp_a_sec"]))
+        ts_b = _format_timestamp_hms_ms(float(row["timestamp_b_sec"]))
         out_name = (
-            f"pair_{row['pair_index']:04d}_"
-            f"a{row['frame_a_index']:06d}_{row['timestamp_a_sec']:08.2f}s_"
-            f"b{row['frame_b_index']:06d}_{row['timestamp_b_sec']:08.2f}s.png"
+            f"video1_{ts_a}_____video2_{ts_b}.png"
         )
         out_path = changed_dir / out_name
         save_result(row.pop("diff_image"), out_path)

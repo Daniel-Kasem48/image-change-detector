@@ -1,0 +1,29 @@
+detector:
+  threshold: 60
+  min_contour_area: 8000
+  blur_kernel: 11
+  max_contour_area_ratio: 0.6
+
+alignment:
+  feature_type: sift
+  max_features: 5000
+  good_match_ratio: 0.75
+  ransac_thresh: 5.0
+  min_matches: 10
+  use_similarity_transform: false
+
+normalization:
+  method: combined
+  clahe_clip: 2.0
+  clahe_grid: 8
+
+multiscale:
+  num_levels: 4
+  threshold: 40
+  consistency: 3
+  min_contour_area: 2000
+  blur_kernel: 7
+
+output:
+  directory: outputs/
+  dpi: 150

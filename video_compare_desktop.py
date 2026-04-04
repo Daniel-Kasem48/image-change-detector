@@ -11,9 +11,45 @@ Run:
 from __future__ import annotations
 
 import json
+import logging
 import sys
 import traceback
 from pathlib import Path
+
+LOG_FILE = Path.home() / "VideoChangeDetector.log"
+
+
+def _show_fatal_error(message: str) -> None:
+    if sys.platform.startswith("win"):
+        try:
+            import ctypes
+
+            ctypes.windll.user32.MessageBoxW(0, message, "Video Change Detector Error", 0x10)
+            return
+        except Exception:
+            pass
+    print(message)
+
+
+def _resource_path(filename: str) -> Path:
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(getattr(sys, "_MEIPASS")) / filename
+    return Path(__file__).parent / filename
+
+
+def _resolve_default_config() -> Path:
+    # Prefer the desktop-tuned config first for easier out-of-box behavior.
+    candidates = [
+        _resource_path("config.desktop.yaml"),
+        _resource_path("config.yaml"),
+        Path("config.desktop.yaml"),
+        Path("config.yaml"),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return Path("config.desktop.yaml")
+
 
 try:
     from PySide6.QtCore import QObject, QThread, Signal
@@ -38,15 +74,21 @@ try:
     )
     from PySide6.QtCore import QUrl
 except ModuleNotFoundError:
-    print("PySide6 is not installed.")
-    print("Install desktop dependencies with:")
-    print("  ./venv/bin/pip install -r requirements-desktop.txt")
+    _show_fatal_error(
+        "PySide6 is not installed.\n\n"
+        "Install desktop dependencies with:\n"
+        "./venv/bin/pip install -r requirements-desktop.txt"
+    )
     raise SystemExit(1)
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.config import load_config
-from src.video_compare import compare_videos
+try:
+    from src.config import load_config
+    from src.video_compare import compare_videos
+except Exception as exc:  # noqa: BLE001
+    _show_fatal_error(f"Failed to load application modules:\n{exc}")
+    raise SystemExit(1)
 
 
 class CompareWorker(QObject):
@@ -95,6 +137,8 @@ class MainWindow(QMainWindow):
         self.worker_thread: QThread | None = None
         self.worker: CompareWorker | None = None
 
+        self.default_cfg = _resolve_default_config()
+
         root = QWidget()
         layout = QVBoxLayout(root)
         layout.addWidget(self._build_files_group())
@@ -113,7 +157,7 @@ class MainWindow(QMainWindow):
         self.output_dir = self._line_with_button("Select Output Folder", self._pick_output_dir)
         self.output_dir[0].setText("outputs/video_changes_gui")
         self.config = self._line_with_button("Select Config", self._pick_config)
-        self.config[0].setText("config.yaml")
+        self.config[0].setText(str(self.default_cfg))
         form.addRow("Video A", self._pair_widget(*self.video_a))
         form.addRow("Video B", self._pair_widget(*self.video_b))
         form.addRow("Output Dir", self._pair_widget(*self.output_dir))
@@ -289,6 +333,13 @@ class MainWindow(QMainWindow):
 
 
 def main() -> None:
+    logging.basicConfig(
+        filename=str(LOG_FILE),
+        filemode="a",
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
+    logging.info("Launching desktop app")
     app = QApplication(sys.argv)
     win = MainWindow()
     win.show()
@@ -296,4 +347,13 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:  # noqa: BLE001
+        msg = (
+            f"The app crashed during startup.\n\n{exc}\n\n"
+            f"A log may be available at:\n{LOG_FILE}"
+        )
+        _show_fatal_error(msg)
+        logging.exception("Fatal startup error")
+        raise

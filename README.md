@@ -176,9 +176,12 @@ python main.py compare-videos /path/to/video_a.mp4 /path/to/video_b.mp4 \
 ```
 
 This saves only changed frame-pair visualizations under:
-`outputs/video_changes/changed_frames/`
+`outputs/video_changes/changed_frames_YYYY-MM-DD_HH-MM-SS-ms/`
 and writes a report:
 `outputs/video_changes/summary.json`
+
+Changed frame filename format:
+`video1_HH-mm-ss-ms_____video2_HH-mm-ss-ms.png`
 
 If you want simple time-ratio pairing instead of visual alignment:
 
@@ -219,6 +222,7 @@ The desktop app lets you:
 - open output folder quickly
 
 This GUI uses `PySide6` (installed from pip), so you do not need system Tk/Tkinter setup.
+By default, it prefers `config.desktop.yaml` automatically (fallback: `config.yaml`).
 
 #### Windows `.exe` (no terminal for end-users)
 
@@ -233,6 +237,9 @@ How to generate and download it:
 4. Click **Run workflow**.
 5. Open the finished run and download artifact **VideoChangeDetector-windows-exe**.
 6. Share `VideoChangeDetector.exe` with non-technical users.
+
+If the `.exe` fails to start on Windows, check:
+`C:\Users\<username>\VideoChangeDetector.log`
 
 Optional local Windows build (PowerShell):
 
