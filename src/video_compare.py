@@ -48,8 +48,17 @@ class FrameSample:
     image: np.ndarray
 
 
-def _sample_video_frames(video_path: str | Path, sample_fps: float) -> list[FrameSample]:
-    """Sample frames from a video at approximately *sample_fps*."""
+def _sample_video_frames(
+    video_path: str | Path,
+    sample_fps: float,
+    start_sec: float | None = None,
+    end_sec: float | None = None,
+) -> list[FrameSample]:
+    """Sample frames from a video at approximately *sample_fps*.
+
+    If *start_sec* / *end_sec* are given, only frames within that time
+    window are returned (inclusive on both ends).
+    """
     path = Path(video_path)
     cap = cv2.VideoCapture(str(path))
     if not cap.isOpened():
@@ -60,12 +69,22 @@ def _sample_video_frames(video_path: str | Path, sample_fps: float) -> list[Fram
         native_fps = 30.0
     step = max(1, int(round(native_fps / max(sample_fps, 0.01))))
 
+    start_frame = int(start_sec * native_fps) if start_sec else 0
+    end_frame = int(end_sec * native_fps) if end_sec else None
+
+    # Seek to the start frame when possible to avoid decoding
+    # unnecessary leading frames.
+    if start_frame > 0:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+
     samples: list[FrameSample] = []
-    idx = 0
+    idx = start_frame
     try:
         while True:
             ok, frame = cap.read()
             if not ok:
+                break
+            if end_frame is not None and idx > end_frame:
                 break
             if idx % step == 0:
                 ts = idx / native_fps
@@ -377,6 +396,10 @@ def compare_videos(
     min_persistence: int = 1,
     edge_ignore_px: int = 0,
     max_pairs: int | None = None,
+    trim_a_start: float | None = None,
+    trim_a_end: float | None = None,
+    trim_b_start: float | None = None,
+    trim_b_end: float | None = None,
     output_dir: str | Path = "outputs/video_changes",
 ) -> dict[str, Any]:
     """
@@ -417,8 +440,8 @@ def compare_videos(
     changed_dir = out_root / f"changed_frames_{processing_stamp}"
     changed_dir.mkdir(parents=True, exist_ok=True)
 
-    samples_a = _sample_video_frames(video_a, sample_fps)
-    samples_b = _sample_video_frames(video_b, sample_fps)
+    samples_a = _sample_video_frames(video_a, sample_fps, start_sec=trim_a_start, end_sec=trim_a_end)
+    samples_b = _sample_video_frames(video_b, sample_fps, start_sec=trim_b_start, end_sec=trim_b_end)
     if stabilize:
         samples_a = _stabilize_samples(samples_a)
         samples_b = _stabilize_samples(samples_b)

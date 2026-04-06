@@ -40,21 +40,8 @@ jobs:
             --add-data "config.desktop.yaml;." `
             video_compare_desktop.py
 
-      - name: Build DEBUG EXE (console)
-        shell: pwsh
-        run: |
-          pyinstaller --noconfirm --clean --console --onefile `
-            --name VideoChangeDetector_debug `
-            --collect-all PySide6 `
-            --collect-all cv2 `
-            --add-data "config.yaml;." `
-            --add-data "config.desktop.yaml;." `
-            video_compare_desktop.py
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: VideoChangeDetector-windows-exe
-          path: |
-            dist/VideoChangeDetector.exe
-            dist/VideoChangeDetector_debug.exe
+          path: dist/VideoChangeDetector.exe
